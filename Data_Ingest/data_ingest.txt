@@ -1,0 +1,21 @@
+// implement the following code after data cleaning and profiling
+
+// load datasets to HDFS
+hdfs dfs -put attendence_cleaned.csv
+
+spark-shell --deploy-mode client -i 
+
+// load datasets to Spark
+//Dataset 1
+var dt = spark.read.option("header", true).csv("attendence_cleaned.csv")
+
+val joined = df.join(dt, Seq("DBN", "Year"),"inner")
+
+// if you are checking Serena's Account
+var joined = spark.read.option("header", "true").csv("joined/part-00000-99dcff6d-94e0-4a67-904f-7f6c15b6e0f8-c000.csv")
+
+
+df = df.withColumn("dominantRace", when(col("Asian") >= col("Black") && col("Asian") >= col("Hispanic") && col("Asian") >= col("MultiRacial") && col("Asian") >= col("NativeAmerican") && col("Asian") >= col("White"), "Asian").when(col("Black") >= col("Asian") && col("Black") >= col("Hispanic") && col("Black") >= col("MultiRacial") && col("Black") >= col("NativeAmerican") && col("Black") >= col("White"), "Black").when(col("Hispanic") >= col("Black") && col("Hispanic") >= col("Asian") && col("Hispanic") >= col("MultiRacial") && col("Hispanic") >= col("NativeAmerican") && col("Hispanic") >= col("White"), "Hispanic").when(col("MultiRacial") >= col("Asian") && col("MultiRacial") >= col("Hispanic") && col("MultiRacial") >= col("Black") && col("MultiRacial") >= col("NativeAmerican") && col("MultiRacial") >= col("White"), "MultiRacial").when(col("NativeAmerican") >= col("Black") && col("NativeAmerican") >= col("Asian") && col("NativeAmerican") >= col("MultiRacial") && col("NativeAmerican") >= col("Hispanic") && col("NativeAmerican") >= col("White"), "NativeAmerican").when(col("White") >= col("Asian") && col("White") >= col("Hispanic") && col("White") >= col("MultiRacial") && col("White") >= col("NativeAmerican") && col("White") >= col("Black"), "White").otherwise("None"))
+// Count the number of schools where each race is dominant based on the newly created column
+val raceDominanceCount = withDominantRace.groupBy("dominantRace").agg(count("dominantRace").alias("count"))
+raceDominanceCount.show()

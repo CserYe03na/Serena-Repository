@@ -1,0 +1,22 @@
+// Correlation
+//Dataset 1
+//var dt = spark.read.option("header", true).csv("attendence_cleaned.csv")
+//Dataset 2
+//var df = spark.read.option("header", "true").csv("snapshot_cleaned.csv")
+
+
+//val joined = df.join(dt, Seq("DBN", "Year"),"inner")
+
+var joined = spark.read.option("header", "true").csv("joined/part-00000-9c425ce7-e83a-4155-a86e-8ef8fd8daa59-c000.csv")
+
+joined = joined.withColumn("Poverty", col("Poverty").cast("double"))
+
+joined = joined.withColumn("Attendance", col("Attendance").cast("double"))
+
+val correlation = joined.stat.corr("Poverty", "Attendance")
+
+//Perform the t-test and examine the p-value
+val tValue = correlation * math.sqrt((n - 2) / (1 - correlation * correlation))
+import org.apache.commons.math3.distribution.TDistribution
+val tDistribution = new TDistribution(n - 2)
+val pValue = 2 * tDistribution.cumulativeProbability(-math.abs(tValue))
